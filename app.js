@@ -9,6 +9,8 @@ app.set("view engine", "ejs");
 
 // MIDDLEWARE -------------------
 app.use(express.static("public")); // adding static assets (css, img, js files)
+app.use(express.urlencoded({extended: false})) // reads the data 
+app.use(express.json()) // format the data coming in as an object under a property call body
 
 var PORT = process.env.PORT || 3000;
 
@@ -38,6 +40,11 @@ app.get("/todo/:id", function (req, res) {
 
 // Post a todo
 app.post("/create-todo", function (req, res) {
+  // console.log(req.body);
+  var todo = req.body
+  todo.id = Math.round(Math.random() * 2000)
+
+  todosItems.push(todo)
   res.redirect("/");
 });
 
