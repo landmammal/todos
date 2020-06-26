@@ -1,5 +1,6 @@
 // Dependencies
 var express = require("express");
+var mysql = require("mysql");
 
 // app initialization
 var app = express();
@@ -14,49 +15,63 @@ app.use(express.json()); // format the data coming in as an object under a prope
 
 var PORT = process.env.PORT || 3000;
 
-// DATABASE SIMULATION
-var todosItems = [
-  { id: 1, text: "Get Milk" },
-  { id: 2, text: "Work On Project" },
-  { id: 3, text: "Get my Nails done" },
-];
+// DATABASE Connection
+var db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "password",
+  database: "todolist",
+});
+
+db.connect(function (error) {
+  if (error) throw error;
+
+  console.log("MYSQL is connected");
+});
 
 // *********** ROUTES ***********
 
 // GET all todos
 app.get("/", function (req, res) {
-  res.render("list-of-todos.ejs", { list: todosItems });
+  var sql = "SELECT * FROM todos";
+  db.query(sql, function (err, results) {
+    if (err) throw err;
+    // console.log(results);
+    res.render("list-of-todos.ejs", { list: results });
+  });
 });
 
 // Get a single todo
 app.get("/todo/:id", function (req, res) {
-  var id = parseInt(req.params.id);
-  for (let i = 0; i < todosItems.length; i++) {
-    if (id === todosItems[i].id) {
-      res.render("single-todo.ejs", { todo: todosItems[i] });
-    }
-  }
+  var sql = "SELECT * FROM todos WHERE ?";
+  db.query(sql, [{ id: req.params.id }], function (err, results) {
+    if (err) throw err;
+    // console.log(results);
+    res.render("single-todo.ejs", { todo: results[0] });
+  });
 });
 
 // Post a todo
 app.post("/create-todo", function (req, res) {
   // console.log(req.body);
   var todo = req.body;
-  todo.id = Math.round(Math.random() * 2000);
 
-  todosItems.push(todo);
-  res.redirect("/");
+  var sql = "INSERT INTO todos SET ?";
+  db.query(sql, todo, function (err, result) {
+    if (err) throw err;
+    res.redirect("/");
+  });
 });
 
 // Destroying deleting todo
 app.get("/delete-todo/:id", function (req, res) {
-  var id = parseInt(req.params.id); // grab todo id from params
-  for (let i = 0; i < todosItems.length; i++) {
-    if (id === todosItems[i].id) {
-      todosItems.splice(i, 1);
-      res.redirect("/");
-    }
-  }
+  var sql = "DELETE FROM todos WHERE ?";
+  db.query(sql, [{ id: req.params.id }], function (err, results) {
+    if (err) throw err;
+    // console.log(results);
+
+    res.redirect("/");
+  });
 });
 
 // Getting Form for updating a task
@@ -69,15 +84,14 @@ app.get("/update-form/:id", function (req, res) {
 app.post("/update-form/:id", function (req, res) {
   var todo = req.body;
   var id = parseInt(req.params.id);
-  todo.id = id;
-  console.log(todo);
-  
-  for (let i = 0; i < todosItems.length; i++) {
-    if (id === todosItems[i].id) {
-      todosItems[i] = todo;
-      res.redirect("/");
-    }
-  }
+  // console.log(todo);
+  var sql = "UPDATE todos SET ? WHERE ?";
+  db.query(sql, [todo, { id: id }], function (err, results) {
+    if (err) throw err;
+    // console.log(results);
+
+    res.redirect("/");
+  });
 });
 
 app.listen(PORT, function () {
