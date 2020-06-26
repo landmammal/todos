@@ -59,6 +59,27 @@ app.get("/delete-todo/:id", function (req, res) {
   }
 });
 
+// Getting Form for updating a task
+app.get("/update-form/:id", function (req, res) {
+  var id = parseInt(req.params.id);
+  res.render("update-form.ejs", { todoID: id });
+});
+
+// update todo
+app.post("/update-form/:id", function (req, res) {
+  var todo = req.body;
+  var id = parseInt(req.params.id);
+  todo.id = id;
+  console.log(todo);
+  
+  for (let i = 0; i < todosItems.length; i++) {
+    if (id === todosItems[i].id) {
+      todosItems[i] = todo;
+      res.redirect("/");
+    }
+  }
+});
+
 app.listen(PORT, function () {
   console.log("Server is lit on PORT: " + PORT);
 });
