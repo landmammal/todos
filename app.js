@@ -7,10 +7,13 @@ var app = express();
 // set our view engine
 app.set("view engine", "ejs");
 
+// MIDDLEWARE -------------------
+app.use(express.static("public")); // adding static assets (css, img, js files)
+
 var PORT = process.env.PORT || 3000;
 
 app.get("/", function (req, res) {
-  res.send("home Route");
+  res.render("list-of-todos.ejs");
 });
 
 app.listen(PORT, function () {
